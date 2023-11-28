@@ -33,7 +33,7 @@ MainWindowServer::MainWindowServer(QWidget *parent) : QMainWindow(parent),
         _ui->informationFromClientTextEdit->append(("<font color=darkGreen>%1"
             " " + result.second + "</font>").arg(QTime::currentTime()
             .toString()));
-        result = _dataBase->CreateTable1();
+        result = _dataBase->CreateTableUsers();
         if(result.first)
             _ui->informationFromClientTextEdit->append(("<font color="
                 "darkGreen>%1 " + result.second + "</font>").arg(QTime::
@@ -45,7 +45,7 @@ MainWindowServer::MainWindowServer(QWidget *parent) : QMainWindow(parent),
                 "darkRed>%1 " + result.second + "</font>").arg(QTime::
                 currentTime().toString()));
         }
-        result = _dataBase->CreateTable2();
+        result = _dataBase->CreateTablePrivateMessages();
         if(result.first)
             _ui->informationFromClientTextEdit->append(("<font color = "
                 "darkGreen>%1 " + result.second + "</font>").arg(QTime::
@@ -57,7 +57,7 @@ MainWindowServer::MainWindowServer(QWidget *parent) : QMainWindow(parent),
                 "darkRed>%1 " + result.second + "</font>").arg(QTime::
                 currentTime().toString()));
         }
-        result = _dataBase->CreateTable3();
+        result = _dataBase->CreateTableAllMessages();
         if(result.first)
             _ui->informationFromClientTextEdit->append(("<font color = "
                 "darkGreen>%1 " + result.second + "</font>").arg(QTime::

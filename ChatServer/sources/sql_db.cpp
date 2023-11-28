@@ -28,7 +28,7 @@ auto SQLDB::OpenDB()->std::pair<bool, QString>
             "successful!");
 }
 
-auto SQLDB::CreateTable1()->std::pair<bool, QString>
+auto SQLDB::CreateTableUsers()->std::pair<bool, QString>
 {
     QSqlQuery query;
     if(!query.exec("create table if not exists users(id serial primary key, "
@@ -39,7 +39,7 @@ auto SQLDB::CreateTable1()->std::pair<bool, QString>
         return std::make_pair(true, "Table 'users' is created or finded!");
 }
 
-auto SQLDB::CreateTable2()->std::pair<bool, QString>
+auto SQLDB::CreateTablePrivateMessages()->std::pair<bool, QString>
 {
     QSqlQuery query;
     if(!query.exec("create table if not exists private_messages (id serial "
@@ -51,7 +51,7 @@ auto SQLDB::CreateTable2()->std::pair<bool, QString>
             "finded!");
 }
 
-auto SQLDB::CreateTable3()->std::pair<bool, QString>
+auto SQLDB::CreateTableAllMessages()->std::pair<bool, QString>
 {
     QSqlQuery query;
     if(!query.exec("create table if not exists to_all_messages (id serial "
@@ -66,7 +66,7 @@ auto SQLDB::CreateTable3()->std::pair<bool, QString>
 auto SQLDB::CheckUserByLogin(QString login)->bool
 {
     QSqlQuery query;
-    QString str = "select id from users where login='" + login + "'";
+    QString str = "select id from users where login='" + login + "';";
     if(query.exec(str))
         if(query.next())
             return true;
@@ -76,7 +76,7 @@ auto SQLDB::CheckUserByLogin(QString login)->bool
 auto SQLDB::getUserById(QString id)->QString const
 {
     QSqlQuery query;
-    QString str = "select login from users where id='" + id + "'";
+    QString str = "select login from users where id='" + id + "';";
     if(query.exec(str))
         if(query.next())
             return query.value(0).toString();
@@ -89,7 +89,7 @@ auto SQLDB::get20MessagesToAll()->QVector<QString> const
     QString message;
     QSqlQuery query;
     QString str = "select id, from_id, text from (select id, from_id, text "
-        "from to_all_messages order by id desc limit 20) order by id asc";
+        "from to_all_messages order by id desc limit 20) as foo order by id asc;";
     if(query.exec(str))
         while(query.next())
         {
@@ -103,7 +103,7 @@ auto SQLDB::get20MessagesToAll()->QVector<QString> const
 auto SQLDB::getUserId(QString login)->size_t const
 {
     QSqlQuery query;
-    QString str = "select id from users where login='" + login + "'";
+    QString str = "select id from users where login='" + login + "';";
     if(query.exec(str))
         if(query.next())
             return query.value(0).toInt();
@@ -144,7 +144,7 @@ auto SQLDB::CheckUserByLoginAndPassword(QString login, QString password)->bool
 {
     QSqlQuery query;
     QString str = "select login, password from users where login='" + login +
-        "' and password='" + password + "'";
+        "' and password='" + password + "';";
     if(query.exec(str))
         if(query.next())
             return true;
@@ -187,8 +187,8 @@ auto SQLDB::getMessagesBetweenTwoUsers(QString user1, QString user2)->
     QString message;
     QSqlQuery query;
     QString str = "select from_id, to_id, text from private_messages where "
-        "(from_id='" + userId1 + "' and to_id='" + userId2 + "') or (from_id"
-        "'" + userId2 + "' and to_id='" + userId1 + "')";
+        "(from_id='" + userId1 + "' and to_id='" + userId2 + "') or (from_id="
+        "'" + userId2 + "' and to_id='" + userId1 + "');";
     if(query.exec(str))
         while(query.next())
         {
