@@ -33,7 +33,7 @@ auto SQLDB::CreateTableUsers()->std::pair<bool, QString>
     QSqlQuery query;
     if(!query.exec("create table if not exists users(id serial primary key, "
         "name varchar(255) not null, login varchar(255) not null, password "
-        "varchar(255) not null);"))
+        "varchar(255) not null, state numeric DEFAULT 0);"))
         return std::make_pair(false, query.lastError().text());
     else
         return std::make_pair(true, "Table 'users' is created or finded!");
