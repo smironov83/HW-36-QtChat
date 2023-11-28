@@ -8,7 +8,7 @@ constexpr auto DATA_BASE = "QODBC";
 constexpr auto HOST_NAME = "localhost";
 constexpr auto DATA_BASE_NAME = "PostgreSQL35W";
 constexpr auto USER_NAME = "postgres";
-constexpr auto PASSWORD = "password123";// "123456";
+constexpr auto PASSWORD = "123456";
 
 class SQLDB : public QObject
 {
