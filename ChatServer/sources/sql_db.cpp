@@ -199,3 +199,35 @@ auto SQLDB::getMessagesBetweenTwoUsers(QString user1, QString user2)->
         }
     return privateMessages;
 }
+
+auto SQLDB::CheckIsUserBanned(QString login)->bool
+{
+    QSqlQuery query;
+    QString str = "select state from users where login='" + login + "';";
+    if (query.exec(str))
+        if (query.next())
+            if (query.value(0) == -1)
+                return true;
+
+    return false;
+}
+
+auto SQLDB::BanUserByLogin(QString login)->bool
+{
+    QSqlQuery query;
+    QString str = "update users set state=-1 where login = '" + login +"';";
+    if (query.exec(str))
+        return true;
+
+    return false;
+}
+
+auto SQLDB::UnBanUserByLogin(QString login)->bool
+{
+    QSqlQuery query;
+    QString str = "update users set state=0 where login = '" + login +"';";
+    if (query.exec(str))
+        return true;
+
+    return false;
+}

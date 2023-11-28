@@ -32,4 +32,8 @@ public:
         ->QVector<QString> const;
     auto getUserById(QString id)->QString const;
     auto get20MessagesToAll()->QVector<QString> const;
+
+    auto CheckIsUserBanned (QString login) -> bool;
+    auto BanUserByLogin    (QString login) -> bool;
+    auto UnBanUserByLogin  (QString login) -> bool;
 };
