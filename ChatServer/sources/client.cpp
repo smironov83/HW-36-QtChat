@@ -35,7 +35,7 @@ void Client::setState(bool state)
     _online = state;
 }
 
-auto Client::Online()->bool
+auto Client::isOnline()->bool
 {
     return _online;
 }

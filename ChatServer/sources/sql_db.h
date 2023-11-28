@@ -18,9 +18,9 @@ public:
     explicit SQLDB(QObject *parent = nullptr);
     ~SQLDB();
     auto OpenDB()->std::pair<bool, QString>;
-    auto CreateTable1()->std::pair<bool, QString>;
-    auto CreateTable2()->std::pair<bool, QString>;
-    auto CreateTable3()->std::pair<bool, QString>;
+    auto CreateTableUsers()->std::pair<bool, QString>;
+    auto CreateTablePrivateMessages()->std::pair<bool, QString>;
+    auto CreateTableAllMessages()->std::pair<bool, QString>;
     auto CheckUserByLogin(QString login)->bool;
     auto getUserId(QString login)->size_t const;
     auto getAllUsers()->QVector<QString> const;
@@ -32,4 +32,8 @@ public:
         ->QVector<QString> const;
     auto getUserById(QString id)->QString const;
     auto get20MessagesToAll()->QVector<QString> const;
+
+    auto CheckIsUserBanned (QString login) -> bool;
+    auto BanUserByLogin    (QString login) -> bool;
+    auto UnBanUserByLogin  (QString login) -> bool;
 };

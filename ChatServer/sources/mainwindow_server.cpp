@@ -33,7 +33,7 @@ MainWindowServer::MainWindowServer(QWidget *parent) : QMainWindow(parent),
         _ui->informationFromClientTextEdit->append(("<font color=darkGreen>%1"
             " " + result.second + "</font>").arg(QTime::currentTime()
             .toString()));
-        result = _dataBase->CreateTable1();
+        result = _dataBase->CreateTableUsers();
         if(result.first)
             _ui->informationFromClientTextEdit->append(("<font color="
                 "darkGreen>%1 " + result.second + "</font>").arg(QTime::
@@ -45,7 +45,7 @@ MainWindowServer::MainWindowServer(QWidget *parent) : QMainWindow(parent),
                 "darkRed>%1 " + result.second + "</font>").arg(QTime::
                 currentTime().toString()));
         }
-        result = _dataBase->CreateTable2();
+        result = _dataBase->CreateTablePrivateMessages();
         if(result.first)
             _ui->informationFromClientTextEdit->append(("<font color = "
                 "darkGreen>%1 " + result.second + "</font>").arg(QTime::
@@ -57,7 +57,7 @@ MainWindowServer::MainWindowServer(QWidget *parent) : QMainWindow(parent),
                 "darkRed>%1 " + result.second + "</font>").arg(QTime::
                 currentTime().toString()));
         }
-        result = _dataBase->CreateTable3();
+        result = _dataBase->CreateTableAllMessages();
         if(result.first)
             _ui->informationFromClientTextEdit->append(("<font color = "
                 "darkGreen>%1 " + result.second + "</font>").arg(QTime::
@@ -78,14 +78,14 @@ MainWindowServer::MainWindowServer(QWidget *parent) : QMainWindow(parent),
     connect(_ui->allUsersRadioButton, &QRadioButton::toggled, this, [this]
         (const auto on)
     {
-        if(on)
+        if (on)
         {
             QVector<QString> users = _dataBase->getAllUsers();
-            for(auto& user : users)
+            for (auto& user : users)
                 _ui->usersListWidget->addItem(user);
+
             _ui->banUserPushButton->setEnabled(false);
             _ui->disconnectUserPushButton->setEnabled(false);
-            _ui->banUserPushButton->setText("Ban user");
         }
         else
             _ui->usersListWidget->clear();
@@ -94,11 +94,13 @@ MainWindowServer::MainWindowServer(QWidget *parent) : QMainWindow(parent),
     connect(_ui->inBanRadioButton, &QRadioButton::toggled, this, [this]
         (const auto on)
     {
-        if(on)
+        if (on)
         {
-            for(auto& user : _users)
-                if(user->InBan())
-                    _ui->usersListWidget->addItem(user->getName());
+            QVector<QString> users = _dataBase->getAllUsers();
+            for (auto& user : users)
+                if (_dataBase->CheckIsUserBanned(user))
+                    _ui->usersListWidget->addItem(user);
+
             _ui->banUserPushButton->setEnabled(false);
             _ui->disconnectUserPushButton->setEnabled(false);
         }
@@ -109,42 +111,42 @@ MainWindowServer::MainWindowServer(QWidget *parent) : QMainWindow(parent),
     connect(_ui->usersListWidget, &QListWidget::itemClicked, this, [this]
         (QListWidgetItem *item)
     {
-        if(_ui->usersOnlineRadioButton->isChecked())
+        _ui->banUserPushButton->setEnabled(true);
+        if (_dataBase->CheckIsUserBanned(item->text()))
         {
-            _ui->banUserPushButton->setEnabled(true);
-            _ui->disconnectUserPushButton->setEnabled(true);
-            for(auto& user : _users)
-            {
-                if((user->getName() == item->text()) && user->InBan())
-                {
-                    _ui->banUserPushButton->setText("Unban user");
-                    break;
-                }
-                else
-                    _ui->banUserPushButton->setText("Ban user");
-            }
-        }
-        else if(_ui->inBanRadioButton->isChecked())
-        {
-            _ui->banUserPushButton->setEnabled(true);
-            _ui->disconnectUserPushButton->setEnabled(false);
             _ui->banUserPushButton->setText("Unban user");
         }
         else
         {
-            _ui->banUserPushButton->setEnabled(false);
-            _ui->disconnectUserPushButton->setEnabled(false);
+            _ui->banUserPushButton->setText("Ban user");
+        }
+
+
+        for (auto& user : _users)
+        {
+            if ((user->getName() == item->text()) && user->isOnline())
+            {
+                _ui->disconnectUserPushButton->setEnabled(true);
+                break;
+            }
+            else
+            {
+                _ui->disconnectUserPushButton->setEnabled(false);
+            }
         }
     });
 
     connect(_ui->usersOnlineRadioButton, &QRadioButton::toggled, this, [this]
         (const auto on)
     {
-        if(on)
+        if (on)
         {
-            for(auto& user : _users)
-                if(user->Online())
+            for (auto& user : _users)
+                if (user->isOnline())
                     _ui->usersListWidget->addItem(user->getName());
+
+            _ui->banUserPushButton->setEnabled(false);
+            _ui->disconnectUserPushButton->setEnabled(false);
         }
         else
             _ui->usersListWidget->clear();
@@ -179,7 +181,7 @@ void MainWindowServer::UserIsOnline(QTcpSocket* socket, QString login)
     if(!login.isEmpty())
     {
         for(auto& user : _users)
-            if((user->getName() == login) && user->Online())
+            if((user->getName() == login) && user->isOnline())
                 socket->write("147;");
         socket->write("148;");
     }
@@ -213,7 +215,7 @@ void MainWindowServer::disconnect()
             {
                 QListWidgetItem* currentItem = _ui->usersListWidget->findItems
                     (user->getName(), Qt::MatchExactly)[0];
-                if(user->Online() && _ui->usersOnlineRadioButton->isChecked())
+                if(user->isOnline() && _ui->usersOnlineRadioButton->isChecked())
                     delete _ui->usersListWidget->takeItem(_ui->usersListWidget
                         ->row(currentItem));
                 if(user->InBan() && _ui->inBanRadioButton->isChecked())
@@ -317,7 +319,7 @@ void MainWindowServer::SendMessageToAllButOne(QByteArray message, QTcpSocket*
     for (auto i = 0; i < _users.size(); ++i)
     {
         QTcpSocket* clientSocket = _users.at(i)->getSocket();
-        if(socket != clientSocket && _users.at(i)->Online())
+        if(socket != clientSocket && _users.at(i)->isOnline())
             clientSocket->write(message);
     }
 }
@@ -363,7 +365,7 @@ void MainWindowServer::Registration(QTcpSocket* socket, QString name, QString
         _ui->user2ComboBox->addItem(login);
         message = "112;" + login + ";";
         for(auto& user : _users)
-            if(user->Online())
+            if(user->isOnline())
                 message += user->getName() + ",";
         message.resize(message.size()-1);
         socket->write(message.toUtf8());
@@ -387,7 +389,7 @@ void MainWindowServer::LogIn(QTcpSocket *socket, QString login, QString
     bool res = _dataBase->CheckUserByLoginAndPassword(login, password);
     bool isAlreadyOnline = false;
     for(auto& user : _users)
-        if((user->getName() == login) && user->Online())
+        if((user->getName() == login) && user->isOnline())
             isAlreadyOnline = true;
     QString message;
     if(res && !isAlreadyOnline)
@@ -396,6 +398,17 @@ void MainWindowServer::LogIn(QTcpSocket *socket, QString login, QString
             login + " was authenticated";
         getClientBySocket(socket)->setState(true);
         getClientBySocket(socket)->setName(login);
+
+        //ban check
+        if (_dataBase->CheckIsUserBanned(login))
+        {
+            message = "300;";
+            SendMessageToOne(message.toUtf8(), getClientBySocket(socket)->getSocket());
+            message = "301;" + getClientBySocket(socket)->getName();
+            SendMessageToAllButOne(message.toUtf8(), getClientBySocket(socket)->getSocket());
+            //return;
+        }
+
         ++_usersOnline;
         _ui->authUsersLineEdit->setText(QString::number(_usersOnline));
         _ui->informationFromClientTextEdit->append(message);
@@ -403,7 +416,7 @@ void MainWindowServer::LogIn(QTcpSocket *socket, QString login, QString
             _ui->usersListWidget->addItem(login);
         message = "121;" + login + ";";
         for(auto& user : _users)
-            if(user->Online())
+            if(user->isOnline())
                 message += user->getName() + ",";
         message.resize(message.size()-1);
         socket->write(message.toUtf8());
@@ -456,7 +469,7 @@ void MainWindowServer::SendMessage(QTcpSocket *socket, QString text)
         for (auto i = 0; i < _users.size(); ++i)
         {
             QTcpSocket* onlineClientSocket = _users.at(i)->getSocket();
-            if(socket != onlineClientSocket && _users.at(i)->Online())
+            if(socket != onlineClientSocket && _users.at(i)->isOnline())
             {
                 message = "131;" + getClientBySocket(socket)->getName() + ";" +
                     text;
@@ -615,16 +628,19 @@ void MainWindowServer::on_disconnectUserPushButton_clicked()
     QString client = item->text();
     for(auto& user : _users)
     {
-        if((user->getName() == client) && user->Online())
+        if((user->getName() == client) && user->isOnline())
         {
-            QString message = "200;" + user->getName();
+            QString message = "400;" + user->getName();
+            SendMessageToOne(message.toUtf8(), user->getSocket());
+            message = "200;" + user->getName();
             SendMessageToAllButOne(message.toUtf8(), user->getSocket());
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(700));
+
             user->getSocket()->deleteLater();
             RemoveClient(user->getSocket());
-            QListWidgetItem* currentItem = _ui->usersListWidget->findItems
-                (client, Qt::MatchExactly)[0];
-            delete _ui->usersListWidget->takeItem(_ui->usersListWidget->row
-                (currentItem));
+
+            _ui->disconnectUserPushButton->setEnabled(false);
             _ui->authUsersLineEdit->setText(QString::number(--_usersOnline));
             _ui->clientCountLineEdit->setText(QString::number(_users.size()));
             _ui->informationFromClientTextEdit->append(tr("<font color=darkRed"
@@ -639,47 +655,69 @@ void MainWindowServer::on_banUserPushButton_clicked()
 {
     QListWidgetItem* item = _ui->usersListWidget->currentItem();
     QString client = item->text();
-    for(auto& user : _users)
-        if(user->getName() == client)
-        {
-            if(_ui->banUserPushButton->text() == QString("Ban user"))
+    if(_ui->banUserPushButton->text() == QString("Ban user"))
+    {
+
+        _dataBase->BanUserByLogin(client);
+        _ui->banUserPushButton->setText("Unban user");
+        for (auto& user : _users)
+            if (user->getName() == client)
             {
-                _ui->banUserPushButton->setText("Unban user");
                 user->setBan(true);
                 QString message = "300;";
                 SendMessageToOne(message.toUtf8(), user->getSocket());
                 message = "301;" + user->getName();
                 SendMessageToAllButOne(message.toUtf8(), user->getSocket());
-                _ui->informationFromClientTextEdit->append(tr("<font color="
-                    "darkRed>%1 Client with login %2 sent to ban</font>").arg
-                    (QTime::currentTime().toString()).arg(user->getName()));
+                _ui->informationFromClientTextEdit->append(
+                    tr("<font color=darkRed>%1 Client with login %2 sent to ban</font>")
+                        .arg(QTime::currentTime().toString()).arg(user->getName()));
+
                 break;
             }
-            else
+    }
+    else
+    {
+        _dataBase->UnBanUserByLogin(client);
+        _ui->banUserPushButton->setText("Ban user");
+        for (auto& user : _users)
+            if (user->getName() == client)
             {
-                _ui->banUserPushButton->setText("Ban user");
                 user->setBan(false);
                 QString message;
-                _ui->informationFromClientTextEdit->append(tr("<font color="
-                    "darkGreen>%1 Client with login %2 unban</font>").arg(QTime
-                    ::currentTime().toString()).arg(user->getName()));
+                _ui->informationFromClientTextEdit->append(
+                    tr("<font color=darkGreen>%1 Client with login %2 unban</font>")
+                        .arg(QTime::currentTime().toString()).arg(user->getName()));
                 message = "302;" + user->getName() + ";";
-                for(auto& us : _users)
+                for (auto& us : _users)
                 {
-                    if(us->Online())
+                    if (us->isOnline())
                         message += us->getName() + ",";
                 }
                 message.resize(message.size()-1);
                 user->getSocket()->write(message.toUtf8());
                 message = "303;" + user->getName();
                 SendMessageToAllButOne(message.toUtf8(), user->getSocket());
-                if(_ui->inBanRadioButton->isChecked())
+                if (_ui->inBanRadioButton->isChecked())
                 {
-                    QListWidgetItem* currentItem = _ui->usersListWidget->
-                        findItems(client, Qt::MatchExactly)[0];
-                    delete _ui->usersListWidget->takeItem(_ui->usersListWidget
-                        ->row(currentItem));
+                    QListWidgetItem* currentItem = _ui->usersListWidget->findItems(client, Qt::MatchExactly)[0];
+                    delete _ui->usersListWidget->takeItem(_ui->usersListWidget->row(currentItem));
                 }
+                break;
             }
+    }
+
+    for (auto& user : _users)
+        if (user->getName() == client)
+        {
+
+            _ui->banUserPushButton->setText("Unban user");
+
+            break;
         }
+        else
+        {
+            _ui->banUserPushButton->setText("Ban user");
+
+        }
+
 }

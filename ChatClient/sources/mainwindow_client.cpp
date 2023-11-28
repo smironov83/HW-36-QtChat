@@ -434,6 +434,7 @@ void MainWindowClient::on_sendButton_clicked()
 301 - user in ban
 302 - current user unban
 303 - user unban
+400 - current user kicked
 500 - command messages*/
 
 void MainWindowClient::readData()
@@ -543,6 +544,9 @@ void MainWindowClient::readData()
     case 303:
         _ui->allMessagesTextEdit->append(QString("<font color=green>%1 User "
             "with login %2 Unban!</font>").arg(QTime::currentTime().toString()).arg(str.section(';',1)));
+        break;
+    case 400:
+        _ui->allMessagesTextEdit->append(QString("<font color=red>%1 You are kicked!</font>").arg(QTime::currentTime().toString()));
         break;
     case 500:
         ReceiveCommandMessageFromServer(str.section(';',1));

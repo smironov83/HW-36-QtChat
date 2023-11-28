@@ -18,7 +18,7 @@ public:
     void setName(QString name);
     auto getName()->QString const;
     void setState(bool state);
-    auto Online()->bool;
+    auto isOnline()->bool;
     auto InBan()->bool;
     void setBan(bool ban);
 };
