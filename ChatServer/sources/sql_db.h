@@ -8,7 +8,7 @@ constexpr auto DATA_BASE = "QODBC";
 constexpr auto HOST_NAME = "localhost";
 constexpr auto DATA_BASE_NAME = "PostgreSQL35W";
 constexpr auto USER_NAME = "postgres";
-constexpr auto PASSWORD = "123456";
+constexpr auto PASSWORD = "password123";// "123456";
 
 class SQLDB : public QObject
 {
@@ -18,9 +18,9 @@ public:
     explicit SQLDB(QObject *parent = nullptr);
     ~SQLDB();
     auto OpenDB()->std::pair<bool, QString>;
-    auto CreateTable1()->std::pair<bool, QString>;
-    auto CreateTable2()->std::pair<bool, QString>;
-    auto CreateTable3()->std::pair<bool, QString>;
+    auto CreateTableUsers()->std::pair<bool, QString>;
+    auto CreateTablePrivateMessages()->std::pair<bool, QString>;
+    auto CreateTableAllMessages()->std::pair<bool, QString>;
     auto CheckUserByLogin(QString login)->bool;
     auto getUserId(QString login)->size_t const;
     auto getAllUsers()->QVector<QString> const;
